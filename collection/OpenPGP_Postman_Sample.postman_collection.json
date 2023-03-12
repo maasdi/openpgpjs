@@ -1,0 +1,598 @@
+{
+	"info": {
+		"_postman_id": "eaa8284c-aaaf-4c8a-95f0-88fd210a7176",
+		"name": "OpenPGP_Postman_Sample",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8361959"
+	},
+	"item": [
+		{
+			"name": "Sample",
+			"item": [
+				{
+					"name": "Encrypt and decrypt Uint8Array data with a password",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"eval(pm.globals.get(\"openpgp\"));\r",
+									"\r",
+									"(async () => {\r",
+									"    try {\r",
+									"        const message = await openpgp.createMessage({ binary: new Uint8Array([0x01, 0x01, 0x01]) });\r",
+									"        const encrypted = await openpgp.encrypt({\r",
+									"            message, // input as Message object\r",
+									"            passwords: ['secret stuff'], // multiple passwords possible\r",
+									"            format: 'binary' // don't ASCII armor (for Uint8Array output)\r",
+									"        });\r",
+									"        console.log(encrypted); // Uint8Array\r",
+									"\r",
+									"        const encryptedMessage = await openpgp.readMessage({\r",
+									"            binaryMessage: encrypted // parse encrypted bytes\r",
+									"        });\r",
+									"        const { data: decrypted } = await openpgp.decrypt({\r",
+									"            message: encryptedMessage,\r",
+									"            passwords: ['secret stuff'], // decrypt with password\r",
+									"            format: 'binary' // output as Uint8Array\r",
+									"        });\r",
+									"        console.log(decrypted); // Uint8Array([0x01, 0x01, 0x01])\r",
+									"    } catch (e) {\r",
+									"        console.log(e);\r",
+									"    }\r",
+									"})();"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://postman-echo.com/get",
+							"protocol": "https",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Encrypt and decrypt String data with PGP keys",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"eval(pm.globals.get(\"openpgp\"));\r",
+									"\r",
+									"(async () => {\r",
+									"\r",
+									"    const publicKeyArmored = `-----BEGIN PGP PUBLIC KEY BLOCK-----\r",
+									"\r",
+									"xjMEZA0+BRYJKwYBBAHaRw8BAQdApTusgvPwMGfU37xZdwheRL+to89kWF4t\r",
+									"K2w2oiCB6YjNG0pvbiBTbWl0aCA8am9uQGV4YW1wbGUuY29tPsKMBBAWCgA+\r",
+									"BYJkDT4FBAsJBwgJkNhog62QLidVAxUICgQWAAIBAhkBApsDAh4BFiEEu+tU\r",
+									"F08uVguAMPxY2GiDrZAuJ1UAAMTGAPwK01C+1/eGOpTpZU0AeEQwNGikPxQQ\r",
+									"qTUUbHsdORd3FQD/Z5XhwlE1Bh5tn24Vui4UK/WuE9NgnfevtByi9d6cDQbO\r",
+									"OARkDT4FEgorBgEEAZdVAQUBAQdAwGx4utkfphvWraHxjQJSawpqW3GKUpUf\r",
+									"IJL4FoJWIjEDAQgHwngEGBYIACoFgmQNPgUJkNhog62QLidVApsMFiEEu+tU\r",
+									"F08uVguAMPxY2GiDrZAuJ1UAAJqtAQCDQxYqUkGF3fhCJOOfE5+0XEZtiOzc\r",
+									"lfjYeQTAsxqqvQEAlmDnBt+UVXBQzAh8XoIsC7Wj1oNiLrvlDJMPDfztCQo=\r",
+									"=beUZ\r",
+									"-----END PGP PUBLIC KEY BLOCK-----`;\r",
+									"\r",
+									"    const privateKeyArmored = `-----BEGIN PGP PRIVATE KEY BLOCK-----\r",
+									"\r",
+									"xYYEZA0+BRYJKwYBBAHaRw8BAQdApTusgvPwMGfU37xZdwheRL+to89kWF4t\r",
+									"K2w2oiCB6Yj+CQMI6Cuy9BPvvxHgw7n/AArYHNctp/j/NEOyL05/WkEnSRWf\r",
+									"PaKcQpcyV43zGpqxQqT4A5q1htmSpDbcOCyFX5ZmdTagM5pqLK+ayLVIcjmh\r",
+									"gs0bSm9uIFNtaXRoIDxqb25AZXhhbXBsZS5jb20+wowEEBYKAD4FgmQNPgUE\r",
+									"CwkHCAmQ2GiDrZAuJ1UDFQgKBBYAAgECGQECmwMCHgEWIQS761QXTy5WC4Aw\r",
+									"/FjYaIOtkC4nVQAAxMYA/ArTUL7X94Y6lOllTQB4RDA0aKQ/FBCpNRRsex05\r",
+									"F3cVAP9nleHCUTUGHm2fbhW6LhQr9a4T02Cd96+0HKL13pwNBseLBGQNPgUS\r",
+									"CisGAQQBl1UBBQEBB0DAbHi62R+mG9atofGNAlJrCmpbcYpSlR8gkvgWglYi\r",
+									"MQMBCAf+CQMIRwDYpqYW5ubgEYTuobtRLyOBRV7ra/PGKsHZYKrLgYpXAZ5u\r",
+									"SekB37TRTb6I9Zf7IKdVSyAwwpSHUNoa8+KpYJBuPdyr33Xy1UFWinx05MJ4\r",
+									"BBgWCAAqBYJkDT4FCZDYaIOtkC4nVQKbDBYhBLvrVBdPLlYLgDD8WNhog62Q\r",
+									"LidVAACarQEAg0MWKlJBhd34QiTjnxOftFxGbYjs3JX42HkEwLMaqr0BAJZg\r",
+									"5wbflFVwUMwIfF6CLAu1o9aDYi675QyTDw387QkK\r",
+									"=gXtt\r",
+									"-----END PGP PRIVATE KEY BLOCK-----`;\r",
+									"\r",
+									"    const passphrase = 'secret';\r",
+									"\r",
+									"    try {\r",
+									"        const publicKey = await openpgp.readKey({ armoredKey: publicKeyArmored });\r",
+									"\r",
+									"        const privateKey = await openpgp.decryptKey({\r",
+									"\t\t\tprivateKey: await openpgp.readPrivateKey({ armoredKey: privateKeyArmored}),\r",
+									"\t\t\tpassphrase\r",
+									"\t\t});\r",
+									"\r",
+									"        const encrypted = await openpgp.encrypt({\r",
+									"            message: await openpgp.createMessage({ text: 'Hello, World!' }), // input as Message object\r",
+									"            encryptionKeys: publicKey,\r",
+									"            signingKeys: privateKey // optional\r",
+									"        });\r",
+									"        console.log(encrypted); // '-----BEGIN PGP MESSAGE ... END PGP MESSAGE-----'\r",
+									"\r",
+									"        const message = await openpgp.readMessage({\r",
+									"            armoredMessage: encrypted // parse armored message\r",
+									"        });\r",
+									"        const { data: decrypted, signatures } = await openpgp.decrypt({\r",
+									"            message,\r",
+									"            verificationKeys: publicKey, // optional\r",
+									"            decryptionKeys: privateKey\r",
+									"        });\r",
+									"        console.log(decrypted); // 'Hello, World!'\r",
+									"        // check signature validity (signed messages only)\r",
+									"\r",
+									"        await signatures[0].verified; // throws on invalid signature\r",
+									"        console.log('Signature is valid');\r",
+									"    } catch (e) {\r",
+									"        console.log(e);\r",
+									"    }\r",
+									"})();"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://postman-echo.com/get",
+							"protocol": "https",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Encrypt symmetrically with compression",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"eval(pm.globals.get(\"openpgp\"));\r",
+									"\r",
+									"(async () => {\r",
+									"    try {\r",
+									"        const message = await openpgp.createMessage({ binary: new Uint8Array([0x01, 0x02, 0x03]) });\r",
+									"            const encrypted = await openpgp.encrypt({\r",
+									"                message,\r",
+									"                passwords: ['secret stuff'],\r",
+									"                config: { preferredCompressionAlgorithm: openpgp.enums.compression.zip } // compress the data with zip\r",
+									"            });\r",
+									"\r",
+									"            console.log(encrypted);\r",
+									"    } catch (e) {\r",
+									"        console.log(e);\r",
+									"    }\r",
+									"})();"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://postman-echo.com/get",
+							"protocol": "https",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Encrypt to multiple public keys",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"eval(pm.globals.get(\"openpgp\"));\r",
+									"\r",
+									"(async () => {\r",
+									"\r",
+									"    const publicKeysArmored = [`-----BEGIN PGP PUBLIC KEY BLOCK-----\r",
+									"\r",
+									"xjMEZA0+BRYJKwYBBAHaRw8BAQdApTusgvPwMGfU37xZdwheRL+to89kWF4t\r",
+									"K2w2oiCB6YjNG0pvbiBTbWl0aCA8am9uQGV4YW1wbGUuY29tPsKMBBAWCgA+\r",
+									"BYJkDT4FBAsJBwgJkNhog62QLidVAxUICgQWAAIBAhkBApsDAh4BFiEEu+tU\r",
+									"F08uVguAMPxY2GiDrZAuJ1UAAMTGAPwK01C+1/eGOpTpZU0AeEQwNGikPxQQ\r",
+									"qTUUbHsdORd3FQD/Z5XhwlE1Bh5tn24Vui4UK/WuE9NgnfevtByi9d6cDQbO\r",
+									"OARkDT4FEgorBgEEAZdVAQUBAQdAwGx4utkfphvWraHxjQJSawpqW3GKUpUf\r",
+									"IJL4FoJWIjEDAQgHwngEGBYIACoFgmQNPgUJkNhog62QLidVApsMFiEEu+tU\r",
+									"F08uVguAMPxY2GiDrZAuJ1UAAJqtAQCDQxYqUkGF3fhCJOOfE5+0XEZtiOzc\r",
+									"lfjYeQTAsxqqvQEAlmDnBt+UVXBQzAh8XoIsC7Wj1oNiLrvlDJMPDfztCQo=\r",
+									"=beUZ\r",
+									"-----END PGP PUBLIC KEY BLOCK-----`,\r",
+									"`-----BEGIN PGP PUBLIC KEY BLOCK-----\r",
+									"\r",
+									"xjMEZA1ANxYJKwYBBAHaRw8BAQdA5KI59rq5i0d369Qp4qMEx94gDUn9mZZV\r",
+									"5/XhWgprcu3NG0pvbiBTbWl0aCA8am9uQGV4YW1wbGUuY29tPsKMBBAWCgA+\r",
+									"BYJkDUA3BAsJBwgJkKAoRxhxQ0SrAxUICgQWAAIBAhkBApsDAh4BFiEE8kmA\r",
+									"DIHOp+9Y6AcDoChHGHFDRKsAABXKAQCfcjdjVg+zXOwBkSHQgwg+Hopnq/Wi\r",
+									"2ND2lP1//WbPXQD+IWGkzSzwfo/8rIImw+A97ORFHjftkCgSVMPLUGfP1QPO\r",
+									"OARkDUA3EgorBgEEAZdVAQUBAQdAGc3z8RemjooFcz+2nUvkQ7Cdcwjp5Ji2\r",
+									"rnq6YFhRZmYDAQgHwngEGBYIACoFgmQNQDcJkKAoRxhxQ0SrApsMFiEE8kmA\r",
+									"DIHOp+9Y6AcDoChHGHFDRKsAAM5eAP9NA7hxZMqpfxs1j7OrYnsjIcTUBsOW\r",
+									"ZMtYwFkg70OxDQEAl28pejIVrKwedHUhBqw3U8jgNmrVIgN3+aNOM7IQRg8=\r",
+									"=9Ssy\r",
+									"-----END PGP PUBLIC KEY BLOCK-----`];\r",
+									"\r",
+									"    const privateKeyArmored = `-----BEGIN PGP PRIVATE KEY BLOCK-----\r",
+									"\r",
+									"xYYEZA0+BRYJKwYBBAHaRw8BAQdApTusgvPwMGfU37xZdwheRL+to89kWF4t\r",
+									"K2w2oiCB6Yj+CQMI6Cuy9BPvvxHgw7n/AArYHNctp/j/NEOyL05/WkEnSRWf\r",
+									"PaKcQpcyV43zGpqxQqT4A5q1htmSpDbcOCyFX5ZmdTagM5pqLK+ayLVIcjmh\r",
+									"gs0bSm9uIFNtaXRoIDxqb25AZXhhbXBsZS5jb20+wowEEBYKAD4FgmQNPgUE\r",
+									"CwkHCAmQ2GiDrZAuJ1UDFQgKBBYAAgECGQECmwMCHgEWIQS761QXTy5WC4Aw\r",
+									"/FjYaIOtkC4nVQAAxMYA/ArTUL7X94Y6lOllTQB4RDA0aKQ/FBCpNRRsex05\r",
+									"F3cVAP9nleHCUTUGHm2fbhW6LhQr9a4T02Cd96+0HKL13pwNBseLBGQNPgUS\r",
+									"CisGAQQBl1UBBQEBB0DAbHi62R+mG9atofGNAlJrCmpbcYpSlR8gkvgWglYi\r",
+									"MQMBCAf+CQMIRwDYpqYW5ubgEYTuobtRLyOBRV7ra/PGKsHZYKrLgYpXAZ5u\r",
+									"SekB37TRTb6I9Zf7IKdVSyAwwpSHUNoa8+KpYJBuPdyr33Xy1UFWinx05MJ4\r",
+									"BBgWCAAqBYJkDT4FCZDYaIOtkC4nVQKbDBYhBLvrVBdPLlYLgDD8WNhog62Q\r",
+									"LidVAACarQEAg0MWKlJBhd34QiTjnxOftFxGbYjs3JX42HkEwLMaqr0BAJZg\r",
+									"5wbflFVwUMwIfF6CLAu1o9aDYi675QyTDw387QkK\r",
+									"=gXtt\r",
+									"-----END PGP PRIVATE KEY BLOCK-----`;\r",
+									"\r",
+									"    const passphrase = 'secret';\r",
+									"    const plaintext = 'Hello, World!';\r",
+									"\r",
+									"    try {\r",
+									"        const publicKeys = [];\r",
+									"        for (let armoredKey of publicKeysArmored) {\r",
+									"            publicKeys.push(await openpgp.readKey({ armoredKey }));\r",
+									"        }\r",
+									"\r",
+									"        const privateKey = await openpgp.decryptKey({\r",
+									"            privateKey: await openpgp.readKey({ armoredKey: privateKeyArmored }),\r",
+									"            passphrase\r",
+									"        });\r",
+									"\r",
+									"        const message = await openpgp.createMessage({ text: plaintext });\r",
+									"        const encrypted = await openpgp.encrypt({\r",
+									"            message, // input as Message object\r",
+									"            encryptionKeys: publicKeys,\r",
+									"            signingKeys: privateKey // optional\r",
+									"        });\r",
+									"        console.log(encrypted); // '-----BEGIN PGP MESSAGE ... END PGP MESSAGE-----'\r",
+									"    } catch (e) {\r",
+									"        console.log(e);\r",
+									"    }\r",
+									"})();"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://postman-echo.com/get",
+							"protocol": "https",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate new key pair",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"eval(pm.globals.get(\"openpgp\"));\r",
+									"\r",
+									"(async () => {\r",
+									"    try {\r",
+									"    const { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({\r",
+									"            type: 'ecc', // Type of the key, defaults to ECC\r",
+									"            curve: 'curve25519', // ECC curve name, defaults to curve25519\r",
+									"            userIDs: [{ name: 'Jon Smith', email: 'jon@example.com' }], // you can pass multiple user IDs\r",
+									"            passphrase: 'super long and hard to guess secret', // protects the private key\r",
+									"            format: 'armored' // output key format, defaults to 'armored' (other options: 'binary' or 'object')\r",
+									"        });\r",
+									"\r",
+									"        console.log(privateKey);\r",
+									"        console.log(publicKey);\r",
+									"        console.log(revocationCertificate); //\r",
+									"    } catch (e) {\r",
+									"        console.log(e);\r",
+									"    }\r",
+									"})();"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://postman-echo.com/get",
+							"protocol": "https",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign and verify cleartext messages",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"eval(pm.globals.get(\"openpgp\"));\r",
+									"\r",
+									"(async () => {\r",
+									"\r",
+									"    const publicKeyArmored = `-----BEGIN PGP PUBLIC KEY BLOCK-----\r",
+									"\r",
+									"xjMEZA0+BRYJKwYBBAHaRw8BAQdApTusgvPwMGfU37xZdwheRL+to89kWF4t\r",
+									"K2w2oiCB6YjNG0pvbiBTbWl0aCA8am9uQGV4YW1wbGUuY29tPsKMBBAWCgA+\r",
+									"BYJkDT4FBAsJBwgJkNhog62QLidVAxUICgQWAAIBAhkBApsDAh4BFiEEu+tU\r",
+									"F08uVguAMPxY2GiDrZAuJ1UAAMTGAPwK01C+1/eGOpTpZU0AeEQwNGikPxQQ\r",
+									"qTUUbHsdORd3FQD/Z5XhwlE1Bh5tn24Vui4UK/WuE9NgnfevtByi9d6cDQbO\r",
+									"OARkDT4FEgorBgEEAZdVAQUBAQdAwGx4utkfphvWraHxjQJSawpqW3GKUpUf\r",
+									"IJL4FoJWIjEDAQgHwngEGBYIACoFgmQNPgUJkNhog62QLidVApsMFiEEu+tU\r",
+									"F08uVguAMPxY2GiDrZAuJ1UAAJqtAQCDQxYqUkGF3fhCJOOfE5+0XEZtiOzc\r",
+									"lfjYeQTAsxqqvQEAlmDnBt+UVXBQzAh8XoIsC7Wj1oNiLrvlDJMPDfztCQo=\r",
+									"=beUZ\r",
+									"-----END PGP PUBLIC KEY BLOCK-----`;\r",
+									"\r",
+									"    const privateKeyArmored = `-----BEGIN PGP PRIVATE KEY BLOCK-----\r",
+									"\r",
+									"xYYEZA0+BRYJKwYBBAHaRw8BAQdApTusgvPwMGfU37xZdwheRL+to89kWF4t\r",
+									"K2w2oiCB6Yj+CQMI6Cuy9BPvvxHgw7n/AArYHNctp/j/NEOyL05/WkEnSRWf\r",
+									"PaKcQpcyV43zGpqxQqT4A5q1htmSpDbcOCyFX5ZmdTagM5pqLK+ayLVIcjmh\r",
+									"gs0bSm9uIFNtaXRoIDxqb25AZXhhbXBsZS5jb20+wowEEBYKAD4FgmQNPgUE\r",
+									"CwkHCAmQ2GiDrZAuJ1UDFQgKBBYAAgECGQECmwMCHgEWIQS761QXTy5WC4Aw\r",
+									"/FjYaIOtkC4nVQAAxMYA/ArTUL7X94Y6lOllTQB4RDA0aKQ/FBCpNRRsex05\r",
+									"F3cVAP9nleHCUTUGHm2fbhW6LhQr9a4T02Cd96+0HKL13pwNBseLBGQNPgUS\r",
+									"CisGAQQBl1UBBQEBB0DAbHi62R+mG9atofGNAlJrCmpbcYpSlR8gkvgWglYi\r",
+									"MQMBCAf+CQMIRwDYpqYW5ubgEYTuobtRLyOBRV7ra/PGKsHZYKrLgYpXAZ5u\r",
+									"SekB37TRTb6I9Zf7IKdVSyAwwpSHUNoa8+KpYJBuPdyr33Xy1UFWinx05MJ4\r",
+									"BBgWCAAqBYJkDT4FCZDYaIOtkC4nVQKbDBYhBLvrVBdPLlYLgDD8WNhog62Q\r",
+									"LidVAACarQEAg0MWKlJBhd34QiTjnxOftFxGbYjs3JX42HkEwLMaqr0BAJZg\r",
+									"5wbflFVwUMwIfF6CLAu1o9aDYi675QyTDw387QkK\r",
+									"=gXtt\r",
+									"-----END PGP PRIVATE KEY BLOCK-----`;\r",
+									"\r",
+									"    const passphrase = 'secret';\r",
+									"\r",
+									"    try {\r",
+									"        const publicKey = await openpgp.readKey({ armoredKey: publicKeyArmored });\r",
+									"\r",
+									"        const privateKey = await openpgp.decryptKey({\r",
+									"            privateKey: await openpgp.readPrivateKey({ armoredKey: privateKeyArmored }),\r",
+									"            passphrase\r",
+									"        });\r",
+									"\r",
+									"        const unsignedMessage = await openpgp.createCleartextMessage({ text: 'Hello, World!' });\r",
+									"        const cleartextMessage = await openpgp.sign({\r",
+									"            message: unsignedMessage, // CleartextMessage or Message object\r",
+									"            signingKeys: privateKey\r",
+									"        });\r",
+									"        console.log(cleartextMessage); // '-----BEGIN PGP SIGNED MESSAGE ... END PGP SIGNATURE-----'\r",
+									"\r",
+									"        const signedMessage = await openpgp.readCleartextMessage({\r",
+									"            cleartextMessage // parse armored message\r",
+									"        });\r",
+									"        const verificationResult = await openpgp.verify({\r",
+									"            message: signedMessage,\r",
+									"            verificationKeys: publicKey\r",
+									"        });\r",
+									"        const { verified, keyID } = verificationResult.signatures[0];\r",
+									"\r",
+									"        await verified; // throws on invalid signature\r",
+									"        console.log('Signed by key id ' + keyID.toHex());\r",
+									"    } catch (e) {\r",
+									"        console.log(e);\r",
+									"    }\r",
+									"})();"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://postman-echo.com/get",
+							"protocol": "https",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create and verify detached signatures",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"eval(pm.globals.get(\"openpgp\"));\r",
+									"\r",
+									"(async () => {\r",
+									"\r",
+									"    const publicKeyArmored = `-----BEGIN PGP PUBLIC KEY BLOCK-----\r",
+									"\r",
+									"xjMEZA0+BRYJKwYBBAHaRw8BAQdApTusgvPwMGfU37xZdwheRL+to89kWF4t\r",
+									"K2w2oiCB6YjNG0pvbiBTbWl0aCA8am9uQGV4YW1wbGUuY29tPsKMBBAWCgA+\r",
+									"BYJkDT4FBAsJBwgJkNhog62QLidVAxUICgQWAAIBAhkBApsDAh4BFiEEu+tU\r",
+									"F08uVguAMPxY2GiDrZAuJ1UAAMTGAPwK01C+1/eGOpTpZU0AeEQwNGikPxQQ\r",
+									"qTUUbHsdORd3FQD/Z5XhwlE1Bh5tn24Vui4UK/WuE9NgnfevtByi9d6cDQbO\r",
+									"OARkDT4FEgorBgEEAZdVAQUBAQdAwGx4utkfphvWraHxjQJSawpqW3GKUpUf\r",
+									"IJL4FoJWIjEDAQgHwngEGBYIACoFgmQNPgUJkNhog62QLidVApsMFiEEu+tU\r",
+									"F08uVguAMPxY2GiDrZAuJ1UAAJqtAQCDQxYqUkGF3fhCJOOfE5+0XEZtiOzc\r",
+									"lfjYeQTAsxqqvQEAlmDnBt+UVXBQzAh8XoIsC7Wj1oNiLrvlDJMPDfztCQo=\r",
+									"=beUZ\r",
+									"-----END PGP PUBLIC KEY BLOCK-----`;\r",
+									"\r",
+									"    const privateKeyArmored = `-----BEGIN PGP PRIVATE KEY BLOCK-----\r",
+									"\r",
+									"xYYEZA0+BRYJKwYBBAHaRw8BAQdApTusgvPwMGfU37xZdwheRL+to89kWF4t\r",
+									"K2w2oiCB6Yj+CQMI6Cuy9BPvvxHgw7n/AArYHNctp/j/NEOyL05/WkEnSRWf\r",
+									"PaKcQpcyV43zGpqxQqT4A5q1htmSpDbcOCyFX5ZmdTagM5pqLK+ayLVIcjmh\r",
+									"gs0bSm9uIFNtaXRoIDxqb25AZXhhbXBsZS5jb20+wowEEBYKAD4FgmQNPgUE\r",
+									"CwkHCAmQ2GiDrZAuJ1UDFQgKBBYAAgECGQECmwMCHgEWIQS761QXTy5WC4Aw\r",
+									"/FjYaIOtkC4nVQAAxMYA/ArTUL7X94Y6lOllTQB4RDA0aKQ/FBCpNRRsex05\r",
+									"F3cVAP9nleHCUTUGHm2fbhW6LhQr9a4T02Cd96+0HKL13pwNBseLBGQNPgUS\r",
+									"CisGAQQBl1UBBQEBB0DAbHi62R+mG9atofGNAlJrCmpbcYpSlR8gkvgWglYi\r",
+									"MQMBCAf+CQMIRwDYpqYW5ubgEYTuobtRLyOBRV7ra/PGKsHZYKrLgYpXAZ5u\r",
+									"SekB37TRTb6I9Zf7IKdVSyAwwpSHUNoa8+KpYJBuPdyr33Xy1UFWinx05MJ4\r",
+									"BBgWCAAqBYJkDT4FCZDYaIOtkC4nVQKbDBYhBLvrVBdPLlYLgDD8WNhog62Q\r",
+									"LidVAACarQEAg0MWKlJBhd34QiTjnxOftFxGbYjs3JX42HkEwLMaqr0BAJZg\r",
+									"5wbflFVwUMwIfF6CLAu1o9aDYi675QyTDw387QkK\r",
+									"=gXtt\r",
+									"-----END PGP PRIVATE KEY BLOCK-----`;\r",
+									"\r",
+									"    const passphrase = 'secret';\r",
+									"\r",
+									"    try {\r",
+									"        const publicKey = await openpgp.readKey({ armoredKey: publicKeyArmored });\r",
+									"\r",
+									"        const privateKey = await openpgp.decryptKey({\r",
+									"            privateKey: await openpgp.readPrivateKey({ armoredKey: privateKeyArmored }),\r",
+									"            passphrase\r",
+									"        });\r",
+									"\r",
+									"        const message = await openpgp.createMessage({ text: 'Hello, World!' });\r",
+									"        const detachedSignature = await openpgp.sign({\r",
+									"            message, // Message object\r",
+									"            signingKeys: privateKey,\r",
+									"            detached: true\r",
+									"        });\r",
+									"        console.log(detachedSignature);\r",
+									"\r",
+									"        const signature = await openpgp.readSignature({\r",
+									"            armoredSignature: detachedSignature // parse detached signature\r",
+									"        });\r",
+									"        const verificationResult = await openpgp.verify({\r",
+									"            message, // Message object\r",
+									"            signature,\r",
+									"            verificationKeys: publicKey\r",
+									"        });\r",
+									"        const { verified, keyID } = verificationResult.signatures[0];\r",
+									"\r",
+									"        await verified; // throws on invalid signature\r",
+									"        console.log('Signed by key id ' + keyID.toHex());\r",
+									"    } catch (e) {\r",
+									"        console.log(e);\r",
+									"    }\r",
+									"})();"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://postman-echo.com/get",
+							"protocol": "https",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"get"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Install OpenPGP.js",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"status code should be 200\", function () {\r",
+							"    pm.response.to.have.status(200)\r",
+							"    pm.globals.set(\"openpgp\", responseBody)\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://raw.githubusercontent.com/maasdi/openpgpjs/postman/lib/openpgp.min.js",
+					"protocol": "https",
+					"host": [
+						"raw",
+						"githubusercontent",
+						"com"
+					],
+					"path": [
+						"maasdi",
+						"openpgpjs",
+						"postman",
+						"lib",
+						"openpgp.min.js"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
