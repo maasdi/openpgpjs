@@ -180,11 +180,12 @@ export async function decryptKey({ privateKey, passphrase, config, ...rest }) {
   const passphrases = util.isArray(passphrase) ? passphrase : [passphrase];
 
   try {
-    await Promise.all(clonedPrivateKey.getKeys().map(key => (
+    for (let key of clonedPrivateKey.getKeys()) {
       // try to decrypt each key with any of the given passphrases
-      util.anyPromise(passphrases.map(passphrase => key.keyPacket.decrypt(passphrase)))
-    )));
-
+      for (let passphrase of passphrases) {
+        await key.keyPacket.decrypt(passphrase);
+      }
+    };
     await clonedPrivateKey.validate(config);
     return clonedPrivateKey;
   } catch (err) {
@@ -219,11 +220,13 @@ export async function encryptKey({ privateKey, passphrase, config, ...rest }) {
   }
 
   try {
-    await Promise.all(keys.map(async (key, i) => {
+    let i = 0;
+    for (let key of keys) {
       const { keyPacket } = key;
       await keyPacket.encrypt(passphrases[i], config);
       keyPacket.clearPrivateParams();
-    }));
+      i++; 
+    };
     return clonedPrivateKey;
   } catch (err) {
     clonedPrivateKey.clearPrivateParams();
@@ -359,7 +362,9 @@ export async function decrypt({ message, decryptionKeys, passwords, sessionKeys,
       result.data = stream.concat([
         result.data,
         stream.fromAsync(async () => {
-          await util.anyPromise(result.signatures.map(sig => sig.verified));
+          for (let sig of result.signatures) {
+            await sig.verified;
+          }
         })
       ]);
     }
@@ -488,7 +493,9 @@ export async function verify({ message, verificationKeys, expectSigned = false, 
       result.data = stream.concat([
         result.data,
         stream.fromAsync(async () => {
-          await util.anyPromise(result.signatures.map(sig => sig.verified));
+          for (let sig of result.signatures) {
+            await sig.verified;
+          }
         })
       ]);
     }
