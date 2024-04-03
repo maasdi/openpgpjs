@@ -242,5 +242,10 @@ export default {
    * @memberof module:config
    * @property {Set<String>} rejectCurves {@link module:enums.curve}
    */
-  rejectCurves: new Set([enums.curve.secp256k1])
+  rejectCurves: new Set([enums.curve.secp256k1]),
+
+  /** 
+   * Allow expire key option
+  */
+  allowExpireKey: false
 };
